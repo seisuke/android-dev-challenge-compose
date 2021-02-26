@@ -17,30 +17,60 @@ package com.example.androiddevchallenge
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.androiddevchallenge.model.Dog
+import com.example.androiddevchallenge.model.ScreenState.DetailState
+import com.example.androiddevchallenge.model.ScreenState.ListState
+import com.example.androiddevchallenge.model.ScreenStateViewModel
+import com.example.androiddevchallenge.ui.screen.DetailScreen
+import com.example.androiddevchallenge.ui.screen.ListScreen
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
+
+    private val screenStateViewModel by viewModels<ScreenStateViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                MyApp(screenStateViewModel)
             }
+        }
+    }
+
+    override fun onBackPressed() {
+        if (!screenStateViewModel.onBack()) {
+            super.onBackPressed()
         }
     }
 }
 
 // Start building your app here!
 @Composable
-fun MyApp() {
+fun MyApp(screenStateViewModel: ScreenStateViewModel) {
+    val dogList = listOf(
+        Dog(name = "dog1", description = "dog1 is blar blar blar"),
+        Dog(name = "dog2", description = "dog2 is blar blar blar"),
+        Dog(name = "dog3", description = "dog3 is blar blar blar"),
+        Dog(name = "dog4", description = "dog4 is blar blar blar"),
+    )
+
+    val onClick: (Dog) -> Unit = { dog ->
+        screenStateViewModel.navigateTo(DetailState(dog))
+    }
+
+    val screenState = screenStateViewModel.currentScreenState
     Surface(color = MaterialTheme.colors.background) {
-        Text(text = "Ready... Set... GO!")
+        when (screenState) {
+            ListState -> ListScreen(dogList, onClick)
+            is DetailState -> DetailScreen(screenState)
+        }
     }
 }
 
@@ -48,7 +78,7 @@ fun MyApp() {
 @Composable
 fun LightPreview() {
     MyTheme {
-        MyApp()
+        MyApp(ScreenStateViewModel())
     }
 }
 
@@ -56,6 +86,6 @@ fun LightPreview() {
 @Composable
 fun DarkPreview() {
     MyTheme(darkTheme = true) {
-        MyApp()
+        MyApp(ScreenStateViewModel())
     }
 }
